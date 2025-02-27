@@ -13,6 +13,20 @@ import java.util.regex.Pattern;
 // required for WebCrowler
 public class WebCrowler {
 
+	// driver code
+	public static void main(String[] args) {
+		// Creating Object of WebCrawler
+		WebCrowler web_crowler
+			= new WebCrowler();
+
+		// Given URL
+		String root
+			= "https://www.google.com";
+
+		// Method call
+		web_crowler.discover(root);
+    	}
+
 	// To store the URLs in the
 	//FIFO order required for BFS
 	private Queue<String> queue;
@@ -136,17 +150,4 @@ public class WebCrowler {
 
 		return raw;
 	}
-	
-	public static void main(String[] args) {
-		// Creating Object of WebCrawler
-		WebCrowler web_crowler
-			= new WebCrowler();
-
-		// Given URL
-		String root
-			= "https://www.google.com";
-
-		// Method call
-		web_crowler.discover(root);
-    }
 }
