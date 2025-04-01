@@ -39,35 +39,11 @@ The Distributed Web Crawler aims to:
 - **Data Analysis & Visualization**: Web page summary and analytics.
 
 ## Implementation Checklist
-1. **Set up the project environment**
-   - Install necessary libraries (`requests`, `BeautifulSoup`, `multiprocessing`, `threading`, `Redis`, etc.).
-   - Configure a database for storing extracted data.
-
-2. **Develop the Web Crawler**
-   - Implement **parallel page fetching** using multiprocessing.
-   - Implement **concurrent link extraction** using multithreading.
-   - Set up **a task queue** to distribute URLs among worker nodes.
-
-3. **Enable Communication Between Processes**
-   - Implement **Interprocess Communication (IPC)** for data sharing.
-   - Set up a **message queue** or shared memory for worker nodes.
-
-4. **Distribute the Crawling Across Multiple Machines**
-   - Develop a **Master-Worker model** for distributed task execution.
-   - Enable **internode communication** for efficient collaboration.
-
-5. **Implement Failure Recovery & Scalability**
-   - Design a **checkpointing mechanism** to resume crawling after failures.
-   - Allow **dynamic addition of worker nodes** for scalability.
-
-6. **Store and Analyze Data**
-   - Store extracted information in a **database**.
-   - Develop **data analysis tools** to process the scraped data.
-   - Generate **visual reports** (graphs, charts).
-
-7. **Develop a Web Interface**
-   - Create a **frontend** to display summarized data and analytics.
-   - Implement **user-friendly navigation** for viewing recipes and store information.
+- [x] Web Scrapper Creation
+- [x] Add Multithreading for web scraping and link extraction
+- [ ]Summarize Recipes
+- [ ]Implement Recovery for Failure
+- [ ]Display Recipes on Website (linked)
 
 ## How We Will Demonstrate the Project
 - Displaying a **web page with data insights** gathered from the web crawler.

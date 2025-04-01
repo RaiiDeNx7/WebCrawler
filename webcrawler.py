@@ -1,58 +1,72 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.options import Options
+import re
 import time
+import threading
+from collections import deque
 from urllib.parse import urljoin, urlparse
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+from concurrent.futures import ThreadPoolExecutor
 
-# Set up Chrome options
-chrome_options = Options()
-chrome_options.add_argument("--headless")  # Run in headless mode (no UI)
-chrome_options.add_argument("--disable-gpu")
-chrome_options.add_argument("--window-size=1920x1080")
-
-# Set up ChromeDriver path
-service = Service("chromedriver")  # Ensure chromedriver is in your PATH
-
-# Initialize WebDriver
-driver = webdriver.Chrome(service=service, options=chrome_options)
-
-# Crawling function
-def crawl_website(start_url, max_links=5):
-    visited = set()
-    to_visit = [start_url]
-
-    while to_visit and len(visited) < max_links:
-        url = to_visit.pop(0)
-        if url in visited:
-            continue
-
+class WebCrawler:
+    def __init__(self, max_threads=5):
+        self.queue = deque()
+        self.discovered_websites = set()
+        self.lock = threading.Lock()  # To ensure thread safety when modifying shared data
+        self.max_threads = max_threads
+        
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")  # Run in headless mode
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        
+        self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    
+    def discover(self, root):
+        self.queue.append(root)
+        self.discovered_websites.add(root)
+        
+        with ThreadPoolExecutor(max_workers=self.max_threads) as executor:
+            while self.queue:
+                url = self.queue.popleft()
+                executor.submit(self.process_url, url)
+    
+    def process_url(self, url):
+        raw = self.read_url(url)
+        
+        regex = r'href=["\'](https?://[^"\']+)'  # Extract full URLs
+        matches = re.findall(regex, raw)
+        
+        for actual in matches:
+            actual = urljoin(url, actual)  # Ensure proper absolute URLs
+            if self.is_valid_url(actual):
+                with self.lock:
+                    if actual not in self.discovered_websites:
+                        self.discovered_websites.add(actual)
+                        print(f"Website found: {actual}")
+                        self.queue.append(actual)
+    
+    def read_url(self, url):
+        raw = ""
         try:
-            driver.get(url)
-            time.sleep(2)  # Allow page to load
+            self.driver.get(url)
+            time.sleep(2)  # Allow JavaScript to load if needed
+            raw = self.driver.page_source
+        except Exception as ex:
+            print(f"Error fetching {url}: {ex}")
+        return raw
+    
+    def is_valid_url(self, url):
+        parsed = urlparse(url)
+        return bool(parsed.netloc) and bool(parsed.scheme)
+    
+    def close(self):
+        self.driver.quit()
 
-            # Extract and print page title
-            title = driver.title
-            print(f"Visited: {url} | Title: {title}")
-
-            visited.add(url)
-
-            # Extract all links
-            links = driver.find_elements(By.TAG_NAME, "a")
-            for link in links:
-                href = link.get_attribute("href")
-                if href and href.startswith("http"):
-                    # Ensure it's within the same domain
-                    if urlparse(href).netloc == urlparse(start_url).netloc:
-                        to_visit.append(href)
-
-        except Exception as e:
-            print(f"Error visiting {url}: {e}")
-
-    print("Crawling finished.")
-    driver.quit()
-
-# Start crawling from an example website
-crawl_website("https://foodispower.org/access-health/food-deserts/")
-
+if __name__ == "__main__":
+    crawler = WebCrawler(max_threads=5)
+    root_url = "https://foodispower.org/access-health/food-deserts/"
+    crawler.discover(root_url)
+    crawler.close()
