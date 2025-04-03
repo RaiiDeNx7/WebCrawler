@@ -1,0 +1,71 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #C19A6B; /* Desert Sand Color */
+}
+nav {
+    background: #8B5A2B; /* Earthy brown color */
+    padding: 10px;
+}
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+}
+nav ul li {
+    margin: 0 15px;
+}
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    padding: 8px 12px;
+}
+nav ul li a.active {
+    font-weight: bold;
+    border-bottom: 2px solid white;
+}
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+h1 {
+    text-align: center;
+    color: #333;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+.recipe {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.recipe h2 {
+    margin: 0 0 10px;
+    font-size: 1.5em;
+    color: #007b5e;
+}
+.recipe ul {
+    list-style: none;
+    padding: 0;
+}
+.recipe ul li {
+    background: #eee;
+    margin: 5px 0;
+    padding: 5px;
+    border-radius: 5px;
+}
+@media (max-width: 600px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
