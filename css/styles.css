@@ -35,7 +35,7 @@ nav ul li a.active {
 }
 h1 {
     text-align: center;
-    color: #333;
+    color: white;
 }
 .grid {
     display: grid;
@@ -68,4 +68,12 @@ h1 {
     .grid {
         grid-template-columns: 1fr;
     }
+}
+.about-image {
+    display: block;
+    margin: 20px auto;
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    padding-top: 50px;
 }
