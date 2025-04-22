@@ -1,5 +1,11 @@
 # README.md
 
+# Group Members
+Isaac Watts
+Hunter Smith
+Taniyah Epps
+Kiara Wilson
+
 # Distributed WebCrawler
 
 This project is a distributed web crawler composed of a **Controller** and multiple **Workers**.
@@ -72,4 +78,7 @@ Start/stop crawling
 Worker returned """ from (IP, Port)
 
 Database to store 
+
+
+
 
