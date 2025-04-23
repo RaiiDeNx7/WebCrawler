@@ -1,12 +1,13 @@
-# worker/worker.py
+### worker/worker.py
 
 import socket
 import time
 import requests
 from bs4 import BeautifulSoup
 from common.protocol import encode_message, decode_message, MSG_READY, MSG_URL, MSG_RESULT, MSG_NO_MORE_WORK
+import os
 
-CONTROLLER_HOST = '127.0.0.1'
+CONTROLLER_HOST = os.getenv("CONTROLLER_HOST", "127.0.0.1")
 CONTROLLER_PORT = 5000
 
 def crawl(url):
@@ -38,7 +39,7 @@ def worker_main():
                     msg_type, data = decode_message(raw_msg)
 
                     if msg_type == MSG_URL:
-                        url = data
+                        url = data.get("url") if isinstance(data, dict) else data
                         links = crawl(url)
                         result = {"links": links}
                         sock.sendall(encode_message(MSG_RESULT, result))
@@ -49,8 +50,7 @@ def worker_main():
 
         except (ConnectionRefusedError, ConnectionResetError) as e:
             print(f"[Worker] Connection error: {e}. Retrying...")
-            time.sleep(2)  # Retry after a short delay
-
+            time.sleep(2)
 
 if __name__ == "__main__":
     worker_main()

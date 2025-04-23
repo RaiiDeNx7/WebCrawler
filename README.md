@@ -20,7 +20,7 @@ worker/        # Worker clients that perform crawling
 
 ## Requirements
 
-Install the necessary Python libraries:
+Install the necessary Python libraries (Python 3.12):
 
 ```bash
 pip install requests beautifulsoup4
@@ -44,7 +44,17 @@ Start one or more workers (in different terminals or machines):
 python worker.py
 ```
 
+
 You can run multiple workers to speed up crawling.
+
+## Running Client
+
+```bash
+py client.py status
+py client.py add https://example.com
+py client.py visited
+py client.py shutdown
+```
 
 ## How It Works
 
