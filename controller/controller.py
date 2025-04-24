@@ -27,9 +27,19 @@ with queue_lock:
 
 app = Flask(__name__)
 
+
 @app.route('/')
 def serve_index():
     return send_from_directory('static', 'index.html')
+
+@app.route('/recipe')
+def serve_recipe():
+    return send_from_directory('static', 'recipe.html')
+
+@app.route('/about')
+def serve_about():
+    return send_from_directory('static', 'about.html')
+
 
 @app.route('/status', methods=['GET'])
 def status():
