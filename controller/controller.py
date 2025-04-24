@@ -1,5 +1,3 @@
-### controller/controller.py
-
 import socket
 import threading
 import queue
@@ -11,17 +9,21 @@ import os
 HOST = '0.0.0.0'
 PORT = 5000
 
-url_queue = queue.Queue()
-visited_urls = set()
+url_queue = queue.Queue()  # The thread-safe queue to store URLs
+visited_urls = set()  # URLs that have already been crawled
+queued_urls = set()  # URLs that are already in the queue
 queue_lock = threading.Lock()
-all_urls_in_queue = []
 
 seed_urls = [
     'https://google.com',
     'https://example.org'
 ]
-for url in seed_urls:
-    url_queue.put(url)
+
+# Initialize the queue with seed URLs
+with queue_lock:
+    for url in seed_urls:
+        url_queue.put(url)
+        queued_urls.add(url)
 
 app = Flask(__name__)
 
@@ -35,7 +37,7 @@ def status():
         return jsonify({
             'queue_size': url_queue.qsize(),
             'visited_count': len(visited_urls),
-            'queue_contents': all_urls_in_queue
+            'queue_contents': list(queued_urls - visited_urls)
         })
 
 @app.route('/add_url', methods=['POST'])
@@ -43,8 +45,9 @@ def add_url():
     new_url = request.json.get('url')
     if new_url:
         with queue_lock:
-            if new_url not in visited_urls:
+            if new_url not in visited_urls and new_url not in queued_urls:
                 url_queue.put(new_url)
+                queued_urls.add(new_url)
         return jsonify({'status': 'URL added'}), 200
     return jsonify({'error': 'No URL provided'}), 400
 
@@ -73,24 +76,31 @@ def handle_worker(conn, addr):
             msg_type, data = decode_message(raw_msg)
 
             if msg_type == MSG_READY:
-                with queue_lock:
-                    if not url_queue.empty():
-                        next_url = url_queue.get()
-                        visited_urls.add(next_url)
-                        conn.sendall(encode_message(MSG_URL, {"url": next_url, "assigned_to": str(addr)}))
-                        print(f"[✓] Task for {next_url} handled by {addr}")
-                    else:
-                        conn.sendall(encode_message(MSG_NO_MORE_WORK))
-                        break
+                timeout = 5  # wait up to 5 seconds for new work
+                waited = 0
+                while waited < timeout:
+                    with queue_lock:
+                        if not url_queue.empty():
+                            next_url = url_queue.get()
+                            visited_urls.add(next_url)
+                            queued_urls.discard(next_url)
+                            conn.sendall(encode_message(MSG_URL, {"url": next_url, "assigned_to": str(addr)}))
+                            print(f"[✓] Task for {next_url} handled by {addr}")
+                            break
+                    time.sleep(1)
+                    waited += 1
+                else:
+                    conn.sendall(encode_message(MSG_NO_MORE_WORK))
+                    print(f"[!] No more work for {addr}. Worker will shut down.")
+                    break
 
             elif msg_type == MSG_RESULT:
                 links = data.get("links", [])
                 with queue_lock:
                     for link in links:
-                        if link not in visited_urls:
+                        if link not in visited_urls and link not in queued_urls:
                             url_queue.put(link)
-                            all_urls_in_queue.append(link)
-
+                            queued_urls.add(link)
     except Exception as e:
         print(f"[!] Error with worker {addr}: {e}")
     finally:

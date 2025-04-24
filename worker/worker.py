@@ -47,6 +47,7 @@ def worker_main():
                     elif msg_type == MSG_NO_MORE_WORK:
                         print("[Worker] No more work. Shutting down.")
                         return
+                    time.sleep(2)
 
         except (ConnectionRefusedError, ConnectionResetError) as e:
             print(f"[Worker] Connection error: {e}. Retrying...")
