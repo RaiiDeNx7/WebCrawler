@@ -36,7 +36,6 @@ def print_help():
     print("  status            Show queue size, visited count, and queued URLs")
     print("  add <url>         Add a new URL to the crawl queue")
     print("  visited           List all visited URLs")
-    print("  shutdown          Gracefully shut down the controller")
 
 def main():
     if len(sys.argv) < 2:

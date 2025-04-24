@@ -5,6 +5,7 @@ import time
 from flask import Flask, request, jsonify, send_from_directory
 from common.protocol import encode_message, decode_message, MSG_READY, MSG_URL, MSG_RESULT, MSG_NO_MORE_WORK
 import os
+import signal
 
 HOST = '0.0.0.0'
 PORT = 5000
@@ -27,7 +28,6 @@ with queue_lock:
 
 app = Flask(__name__)
 
-
 @app.route('/')
 def serve_index():
     return send_from_directory('static', 'index.html')
@@ -39,7 +39,6 @@ def serve_recipe():
 @app.route('/about')
 def serve_about():
     return send_from_directory('static', 'about.html')
-
 
 @app.route('/status', methods=['GET'])
 def status():
@@ -66,7 +65,6 @@ def add_url():
 
     return jsonify({'error': 'No URL provided'}), 400
 
-
 @app.route('/visited', methods=['GET'])
 def get_visited():
     with queue_lock:
@@ -74,12 +72,19 @@ def get_visited():
 
 @app.route('/shutdown', methods=['POST'])
 def shutdown():
+    # Try to shutdown gracefully using werkzeug if available
     shutdown_func = request.environ.get('werkzeug.server.shutdown')
     if shutdown_func:
         shutdown_func()
         return 'Server shutting down...'
-    else:
-        return 'Shutdown function not available.', 500
+    
+    # Fallback to manual process kill if werkzeug is not available
+    try:
+        os.kill(os.getpid(), signal.SIGINT)  # Sends a SIGINT to terminate the server
+        return 'Server shutting down...'
+    except Exception as e:
+        return f'Error shutting down server: {e}', 500
+
 
 def handle_worker(conn, addr):
     print(f"[+] Worker connected from {addr} - Task Started")
