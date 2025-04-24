@@ -56,6 +56,14 @@ py client.py visited
 py client.py shutdown
 ```
 
+## Running on website
+
+```bash
+http://127.0.0.1:8000/status
+http://127.0.0.1:8000/visited
+http://127.0.0.1:8000/add_url?target=https://example.com
+```
+
 ## How It Works
 
 - Controller maintains a queue of URLs.

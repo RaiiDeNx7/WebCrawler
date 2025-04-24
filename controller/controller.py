@@ -40,16 +40,22 @@ def status():
             'queue_contents': list(queued_urls - visited_urls)
         })
 
-@app.route('/add_url', methods=['POST'])
+@app.route('/add_url', methods=['GET', 'POST'])
 def add_url():
-    new_url = request.json.get('url')
+    if request.method == 'POST':
+        new_url = request.json.get('url')
+    else:  # GET method
+        new_url = request.args.get('target')
+
     if new_url:
         with queue_lock:
             if new_url not in visited_urls and new_url not in queued_urls:
                 url_queue.put(new_url)
                 queued_urls.add(new_url)
-        return jsonify({'status': 'URL added'}), 200
+        return jsonify({'status': 'URL added', 'url': new_url}), 200
+
     return jsonify({'error': 'No URL provided'}), 400
+
 
 @app.route('/visited', methods=['GET'])
 def get_visited():
