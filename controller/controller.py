@@ -4,7 +4,6 @@ import queue
 import time
 from flask import Flask, request, jsonify, send_from_directory
 from common.protocol import encode_message, decode_message, MSG_READY, MSG_URL, MSG_RESULT, MSG_NO_MORE_WORK
-import os
 
 HOST = '0.0.0.0'
 PORT = 5000
@@ -14,9 +13,21 @@ visited_urls = set()  # URLs that have already been crawled
 queued_urls = set()  # URLs that are already in the queue
 queue_lock = threading.Lock()
 
+# seed_urls = [
+#     'https://google.com',
+#     'https://example.org'
+# ]
+
 seed_urls = [
-    'https://google.com',
-    'https://example.org'
+    "https://allrecipes.com",
+    "https://foodnetwork.com",
+    "https://epicurious.com",
+    "https://bonappetit.com",
+    "https://seriousseats.com",
+    "https://tasty.co",
+    "https://delish.com",
+    "https://eatingwell.com",
+    "https://thekitchn.com",
 ]
 
 # Initialize the queue with seed URLs
@@ -39,6 +50,23 @@ def status():
             'visited_count': len(visited_urls),
             'queue_contents': list(queued_urls - visited_urls)
         })
+
+@app.route('/search', methods=['GET'])
+def search():
+    query = request.args.get('q')  # Grabs ?q=something from the URL
+    if not query:
+        return jsonify({'error': 'Missing search query'}), 400
+
+    with queue_lock:
+        for site in seed_urls:
+            search_url = f"{site}/search?q={query}"
+            if search_url not in visited_urls and search_url not in queued_urls:
+                url_queue.put(search_url)
+                queued_urls.add(search_url)
+
+    return jsonify({'status': f'Search initiated for query: {query}'}), 200
+
+
 
 @app.route('/add_url', methods=['POST'])
 def add_url():
