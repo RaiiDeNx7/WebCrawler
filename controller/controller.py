@@ -79,7 +79,7 @@ def search():
 
 
 
-@app.route('/add_url', methods=['POST'])
+@app.route('/add_url', methods=['Get','POST'])
 def add_url():
     if request.method == 'POST':
         new_url = request.json.get('url')
