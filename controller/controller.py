@@ -4,6 +4,9 @@ import queue
 import time
 from flask import Flask, request, jsonify, send_from_directory
 from common.protocol import encode_message, decode_message, MSG_READY, MSG_URL, MSG_RESULT, MSG_NO_MORE_WORK
+import os 
+import signal
+
 
 HOST = '0.0.0.0'
 PORT = 5000
@@ -42,6 +45,14 @@ app = Flask(__name__)
 def serve_index():
     return send_from_directory('static', 'index.html')
 
+@app.route('/recipe')
+def serve_recipe():
+    return send_from_directory('static', 'recipe.html')
+
+@app.route('/about')
+def serve_about():
+    return send_from_directory('static', 'about.html')
+
 @app.route('/status', methods=['GET'])
 def status():
     with queue_lock:
@@ -70,13 +81,18 @@ def search():
 
 @app.route('/add_url', methods=['POST'])
 def add_url():
-    new_url = request.json.get('url')
+    if request.method == 'POST':
+        new_url = request.json.get('url')
+    else:  # GET method
+        new_url = request.args.get('target')
+
     if new_url:
         with queue_lock:
             if new_url not in visited_urls and new_url not in queued_urls:
                 url_queue.put(new_url)
                 queued_urls.add(new_url)
-        return jsonify({'status': 'URL added'}), 200
+        return jsonify({'status': 'URL added', 'url': new_url}), 200
+
     return jsonify({'error': 'No URL provided'}), 400
 
 @app.route('/visited', methods=['GET'])
@@ -86,12 +102,19 @@ def get_visited():
 
 @app.route('/shutdown', methods=['POST'])
 def shutdown():
+    # Try to shutdown gracefully using werkzeug if available
     shutdown_func = request.environ.get('werkzeug.server.shutdown')
     if shutdown_func:
         shutdown_func()
         return 'Server shutting down...'
-    else:
-        return 'Shutdown function not available.', 500
+    
+    # Fallback to manual process kill if werkzeug is not available
+    try:
+        os.kill(os.getpid(), signal.SIGINT)  # Sends a SIGINT to terminate the server
+        return 'Server shutting down...'
+    except Exception as e:
+        return f'Error shutting down server: {e}', 500
+
 
 def handle_worker(conn, addr):
     print(f"[+] Worker connected from {addr} - Task Started")
