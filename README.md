@@ -19,6 +19,36 @@ worker/        # Worker clients that perform crawling
 ```
 
 ## Requirements
+Docker instructions: 
+1) Build the docker image:
+```
+sudo docker build -t webcrawler .
+```
+
+2) Run the controller first: **NOTE** On windows it will be cmd
+```
+sudo docker run -it --entrypoint bash webcrawler
+```
+```
+python -m controller.controller
+```
+
+3) Run a worker on a the machine you ran the controller. 
+```
+sudo docker run -it --entrypoint bash webcrawler
+```
+```
+python -m worker.worker
+```
+or
+When you have to run using other machines, you need to find the controllers private ip address and use that. 
+```
+sudo docker run -e CONTROLLER_HOST="<CONTROLLER_PRIV_IP>" -it --entrypoint bash webcrawler
+```
+```
+python -m worker.worker
+```
+
 
 Install the necessary Python libraries (Python 3.12):
 
