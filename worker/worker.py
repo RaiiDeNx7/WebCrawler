@@ -9,7 +9,7 @@ import os
 import json
 from urllib.parse import urlparse
 
-CONTROLLER_HOST = os.getenv("CONTROLLER_HOST", "172.20.208.161:8000")
+CONTROLLER_HOST = os.getenv("CONTROLLER_HOST", "127.0.0.1")
 CONTROLLER_PORT = 5000
 
 pid = os.getpid()
