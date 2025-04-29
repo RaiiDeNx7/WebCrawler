@@ -53,7 +53,7 @@ python -m worker.worker
 Install the necessary Python libraries (Python 3.12):
 
 ```bash
-pip install requests beautifulsoup4
+pip install requests beautifulsoup4 flask
 ```
 
 ## Running the Controller
