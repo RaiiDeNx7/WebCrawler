@@ -70,8 +70,9 @@ http:127.0.0.1:8000/status
 
 Start one or more workers (in different terminals or machines):
 
+1. Change Remote IP in worker.py to the IP of the device runnning the controller.
 ```bash
-python worker.py
+python -m worker.worker
 ```
 
 
